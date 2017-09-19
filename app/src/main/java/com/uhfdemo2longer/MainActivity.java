@@ -1,6 +1,10 @@
 package com.uhfdemo2longer;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -8,6 +12,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.View;
 import android.view.Window;
@@ -49,6 +54,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
     String root = "";
     UHFLongerManager manager = null;
     InventoryThread thread = null;
+    KeyReceiver keyReceiver = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +67,11 @@ public class MainActivity extends Activity implements View.OnClickListener {
         thread.start();
 
         root = Environment.getExternalStorageDirectory().getPath();
+
+        keyReceiver = new KeyReceiver();
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("android.rfid.FUN_KEY");
+        this.registerReceiver(keyReceiver, intentFilter);
     }
 
     DatabaseHelper dbHelper;
@@ -86,6 +97,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
         super.onRestart();
     }
 
+
+
     private void initView() {
         buttonconnect = (Button) findViewById(R.id.buttonconnect);
         buttonscan = (Button) findViewById(R.id.buttonscan);
@@ -102,6 +115,37 @@ public class MainActivity extends Activity implements View.OnClickListener {
         buttonclear.setOnClickListener(this);
         buttoninit.setOnClickListener(this);
         buttonfile.setOnClickListener(this);
+    }
+
+    private class KeyReceiver extends BroadcastReceiver {
+        private String TAG = "KeyReceiver";
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            int keyCode = intent.getIntExtra("keyCode", 0);
+            boolean keyDown = intent.getBooleanExtra("keydown", false);
+//			Log.e("down", ""+keyDown);
+            if (keyDown) {
+                switch (keyCode) {
+                    case KeyEvent.KEYCODE_F1:
+                        showtoast("f1");
+                        break;
+                    case KeyEvent.KEYCODE_F2:
+                        showtoast("f2");
+                        break;
+                    case KeyEvent.KEYCODE_F3:
+                        //ÊÖ³Ö°´¼ü
+                        showtoast("f3");
+                        break;
+                    case KeyEvent.KEYCODE_F5:
+                        showtoast("f5");
+                        break;
+                    case KeyEvent.KEYCODE_F4:
+                        showtoast("f6");
+                        break;
+                }
+            }
+        }
     }
 
     private void showtoast(String info) {
@@ -364,6 +408,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
             manager.close();
             manager = null;
         }
+        unregisterReceiver(keyReceiver);
         super.onDestroy();
     }
 
