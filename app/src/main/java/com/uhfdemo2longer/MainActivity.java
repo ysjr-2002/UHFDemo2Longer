@@ -141,7 +141,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                         showtoast("f5");
                         break;
                     case KeyEvent.KEYCODE_F4:
-                        showtoast("f6");
+                        showtoast("f4");
                         break;
                 }
             }
