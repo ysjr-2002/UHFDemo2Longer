@@ -1,14 +1,17 @@
 package com.MyData;
 
+import java.util.Date;
+
 /**
  * Created by Shaojie on 2017/9/17.
  */
 
-public class MyRunner {
+public class Runner {
 
     private String name;
     private String code;
     private String photo;
+    private String confirm;
 
     public String getName() {
         return this.name;
@@ -16,6 +19,14 @@ public class MyRunner {
 
     public void setName(String val) {
         this.name = val;
+    }
+
+    public String getCode() {
+        return this.code;
+    }
+
+    public void setCode(String val) {
+        this.code = val;
     }
 
     public String getPhoto() {
@@ -26,11 +37,11 @@ public class MyRunner {
         this.photo = val;
     }
 
-    public String getCode() {
-        return this.code;
+    public String getConfirm() {
+        return this.confirm;
     }
 
-    public void setCode(String code) {
-        this.code = code;
+    public void setConfirm(String val) {
+        this.confirm = val;
     }
 }

@@ -1,19 +1,25 @@
 package com.uhfdemo2longer;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
@@ -21,14 +27,17 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.MyData.DatabaseHelper;
-import com.MyData.MyRunner;
+import com.MyData.RunnerDBHelper;
+import com.MyData.Runner;
+import com.MyData.RunnerDBManager;
 import com.MyData.Tools;
 import com.handheld.UHFLonger.UHFLongerManager;
 import com.handheld.UHFLongerDemo.Util;
 import com.uhfdemo2longer.R.array;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -40,26 +49,35 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.FileNotFoundException;
 
+import com.MyData.*;
+
+import jxl.Cell;
+import jxl.Sheet;
+import jxl.Workbook;
+
 public class MainActivity extends Activity implements View.OnClickListener {
 
-    Button buttonconnect;
-    Button buttonscan;
-    Button buttonsearch;
-    Button buttonclear;
-    Button buttoninit;
-    Button buttonfile;
-    ImageView imageview_photo;
-    TextView textview_epc;
-    Toast toast;
-    String root = "";
-    UHFLongerManager manager = null;
-    InventoryThread thread = null;
-    KeyReceiver keyReceiver = null;
+    private Button buttonconnect;
+    private Button buttonscan;
+    private Button buttonsearch;
+    private Button buttonclear;
+    private Button buttoninit;
+    private Button buttonfile;
+    private ImageView imageview_photo;
+    private TextView textview_epc;
+    private Toast toast;
+    private String root = "";
+    private UHFLongerManager manager = null;
+    private InventoryThread thread = null;
+    private KeyReceiver keyReceiver = null;
+    private RunnerDBManager dbHelper;
+    private boolean connectFlag = false;
+    private boolean runFlag = true;
+    private static final String TAG = "MainActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_main);
         initView();
         Util.initSoundPool(this);
@@ -74,13 +92,11 @@ public class MainActivity extends Activity implements View.OnClickListener {
         this.registerReceiver(keyReceiver, intentFilter);
     }
 
-    DatabaseHelper dbHelper;
-
     @Override
     protected void onStart() {
-        dbHelper = new DatabaseHelper(this, "shit", null, 1);
-        connect();
-        scan();
+        dbHelper = RunnerDBManager.getInstance(this);
+//        connect();
+//        scan();
         super.onStart();
     }
 
@@ -93,11 +109,21 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     @Override
     protected void onRestart() {
-        startFlag = true;
+        //startFlag = true;
         super.onRestart();
     }
 
-
+    @Override
+    protected void onDestroy() {
+        startFlag = false;
+        runFlag = false;
+        if (manager != null) {
+            manager.close();
+            manager = null;
+        }
+        unregisterReceiver(keyReceiver);
+        super.onDestroy();
+    }
 
     private void initView() {
         buttonconnect = (Button) findViewById(R.id.buttonconnect);
@@ -124,7 +150,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
         public void onReceive(Context context, Intent intent) {
             int keyCode = intent.getIntExtra("keyCode", 0);
             boolean keyDown = intent.getBooleanExtra("keydown", false);
-//			Log.e("down", ""+keyDown);
             if (keyDown) {
                 switch (keyCode) {
                     case KeyEvent.KEYCODE_F1:
@@ -136,6 +161,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     case KeyEvent.KEYCODE_F3:
                         //手持按键
                         showtoast("f3");
+                        scan();
                         break;
                     case KeyEvent.KEYCODE_F5:
                         showtoast("f5");
@@ -167,7 +193,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private static boolean deleteDir(File dir) {
         if (dir.isDirectory()) {
             String[] children = dir.list();
-            for (int i=0; i<children.length; i++) {
+            for (int i = 0; i < children.length; i++) {
                 boolean success = deleteDir(new File(dir, children[i]));
                 if (!success) {
                     return false;
@@ -191,28 +217,28 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 break;
             case R.id.buttonsearch:
                 String ok = "1E573734BE50052BE7981E8D";
-                MyRunner runner = dbHelper.search("1");
-                if (runner != null) {
-                    String path = runner.getPhoto();
-                    path = root + path;
-                    File file = new File(path);
-                    if (file.exists()) {
-                        Bitmap bitmap = getLoacalBitmap(path);
-                        imageview_photo.setImageBitmap(bitmap);
-                    } else {
-                        showtoast("路径不存在");
-                    }
-                }
+//                MyRunner runner = dbHelper.search("1");
+//                if (runner != null) {
+//                    String path = runner.getPhoto();
+//                    path = root + path;
+//                    File file = new File(path);
+//                    if (file.exists()) {
+//                        Bitmap bitmap = getLoacalBitmap(path);
+//                        imageview_photo.setImageBitmap(bitmap);
+//                    } else {
+//                        showtoast("路径不存在");
+//                    }
+//                }
                 break;
             case R.id.buttonclear:
-                int count = dbHelper.count();
-                showtoast(Integer.toString(count));
-                dbHelper.clear();
-                 count = dbHelper.count();
-                showtoast(Integer.toString(count));
-
-                File del = new File(root + "/test");
-                deleteDir(del);
+//                int count = dbHelper.count();
+//                showtoast(Integer.toString(count));
+//                dbHelper.clear();
+//                count = dbHelper.count();
+//                showtoast(Integer.toString(count));
+//
+//                File del = new File(root + "/test");
+//                deleteDir(del);
 //                if (del.delete()) {
 //                    showtoast("删除成功");
 //                } else {
@@ -236,14 +262,14 @@ public class MainActivity extends Activity implements View.OnClickListener {
 //                }
 
                 for (int i = 0; i <= 10; i++) {
-                    String densityFile = root + "/test/" + i + ".jpg";
-                    MyRunner runner1 = new MyRunner();
-                    runner1.setName(Integer.toString(i));
-                    runner1.setCode(Integer.toString(i));
-                    runner1.setPhoto("/test/" + i + ".jpg ");
-                    dbHelper.insert(runner1);
-                    Tools.copyFile(source, densityFile);
-                    Log.i("insert", runner1.getPhoto());
+//                    String densityFile = root + "/test/" + i + ".jpg";
+//                    MyRunner runner1 = new MyRunner();
+//                    runner1.setName(Integer.toString(i));
+//                    runner1.setCode(Integer.toString(i));
+//                    runner1.setPhoto("/test/" + i + ".jpg ");
+//                    dbHelper.insert(runner1);
+//                    Tools.copyFile(source, densityFile);
+//                    Log.i("insert", runner1.getPhoto());
                 }
                 showtoast("初始化结束");
                 break;
@@ -278,7 +304,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
             buttonscan.setText(getString(R.string.inventory));
         }
     }
-
 
     private void connect() {
         try {
@@ -320,17 +345,13 @@ public class MainActivity extends Activity implements View.OnClickListener {
             ex.printStackTrace();
         }
 
-
         if (manager == null) {
-
             showtoast(getString(R.string.serialport_init_fail));
             return;
         } else {
             connectFlag = true;
         }
-
         Util.play(1, 0);
-
         setButtonClickable(buttonconnect, false);
     }
 
@@ -344,7 +365,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
     }
 
     private class InventoryThread extends Thread {
-
         private List<String> epcList;
 
         @Override
@@ -358,20 +378,14 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     if (epcList != null && !epcList.isEmpty()) {
 
                         Util.play(1, 0);
-                        for (final String epc : epcList) {
-                            Log.i("shit", epc + " " + System.currentTimeMillis());
+                        for (String epc : epcList) {
+                            Log.i(TAG, epc + " " + System.currentTimeMillis());
                             Message message = handler.obtainMessage();
                             message.what = 9876;
                             Bundle bundle = new Bundle();
                             bundle.putString("code", epc);
                             message.setData(bundle);
                             handler.sendMessage(message);
-//                            runOnUiThread(new Runnable() {
-//                                @Override
-//                                public void run() {
-//                                    textview_epc.setText(epc + " " + System.currentTimeMillis());
-//                                }
-//                            });
                         }
                     }
 
@@ -384,7 +398,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 }
             }
         }
-
     }
 
     private Handler handler = new Handler() {
@@ -397,29 +410,170 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     break;
             }
         }
-
     };
-
-    @Override
-    protected void onDestroy() {
-        startFlag = false;
-        runFlag = false;
-        if (manager != null) {
-            manager.close();
-            manager = null;
-        }
-        unregisterReceiver(keyReceiver);
-        super.onDestroy();
-    }
-
-    boolean connectFlag = false;
-    boolean runFlag = true;
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
 
         this.getMenuInflater().inflate(R.menu.main, menu);
         return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_import:
+                doImport();
+                break;
+            case R.id.menu_clear:
+                File file = new File(root + "//aa");
+                Tools.deleteFile(file);
+                dbHelper.clear();
+                break;
+            case R.id.menu_about:
+                AboutDialog();
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    int requestCode = 1;
+
+    private void doImport() {
+
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("file/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        startActivityForResult(intent, requestCode);
+    }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == this.requestCode) {
+            if (resultCode == RESULT_OK) {
+
+                Uri uri = data.getData();
+                String scheme = uri.getScheme();
+                String path = GetPathFromUri4kitkat.getPath(this, uri);
+
+                File file = new File(path);
+                if (file.exists()) {
+                    imporExcel(path);
+                }
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    ProgressDialog dialog;
+    private Thread threadImport;
+
+    private void imporExcel(String path) {
+
+        //仅支持读取excel 97-2003
+        try {
+
+            String newFolder = root + "//aa";
+            File temp = new File(newFolder);
+            if (temp.exists() == false) {
+                temp.mkdir();
+            }
+
+            Workbook book = Workbook.getWorkbook(new File(path));
+            final Sheet sheet = book.getSheet(0);
+            final int Rows = sheet.getRows();
+            int Cols = sheet.getColumns();
+            Log.d(TAG, "当前工作表的名字:" + sheet.getName());
+            Log.d(TAG, "总行数:" + Rows + ", 总列数:" + Cols);
+
+            final int copymax = Rows - 1;
+
+            dialog = new ProgressDialog(this);
+            dialog.setTitle("数据导入");
+            dialog.setIcon(R.mipmap.ic_launcher_round);
+            dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+            dialog.setMax(copymax);
+            dialog.show();
+
+            final String source = "/download/ysj.jpg";
+            threadImport = new Thread() {
+                int step = 1;
+
+                @Override
+                public void run() {
+                    super.run();
+                    try {
+                        for (int i = 1; i < Rows; i++) {
+
+                            String name = ReadData(sheet, i, 0);
+                            String code = ReadData(sheet, i, 1);
+                            String photo = ReadData(sheet, i, 2);
+                            Log.d(TAG, name + " " + code + " " + photo);
+
+                            String newPath = "//aa//" + Integer.toString(i) + ".jpg";
+                            Tools.copyFile(source, newPath);
+
+                            dialog.setProgress(i);
+                            Runner runner = new Runner();
+                            runner.setName(name);
+                            runner.setCode(code);
+                            runner.setPhoto(newPath);
+                            runner.setConfirm(getCurrentDateTime());
+                            dbHelper.insert(runner);
+
+                            Thread.sleep(100);
+                        }
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                    dialog.cancel();
+                }
+            };
+            threadImport.start();
+
+
+        } catch (java.io.IOException ex) {
+
+            ex.printStackTrace();
+
+        } catch (jxl.read.biff.BiffException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private static String getCurrentDateTime() {
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+        String temp = df.format(new Date());
+        return temp;
+    }
+
+    private void fileCopy(String source, String density) {
+
+        source = root + source;
+        density = root + density;
+        Log.d(TAG, density);
+        Tools.copyFile(source, density);
+    }
+
+    public static String ReadData(Sheet excelSheet, int row, int col) {
+        try {
+            String CellData = "";
+            Cell cell = excelSheet.getRow(row)[col];
+            CellData = cell.getContents().toString();
+            return CellData;
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    private void AboutDialog() {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.about);
+        builder.setIcon(R.mipmap.ic_launcher);
+        builder.setMessage("人像赋值比对系统 \n V1.0");
+        builder.setNegativeButton("确定", null);
+        builder.show();
     }
 }

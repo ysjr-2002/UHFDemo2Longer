@@ -50,8 +50,17 @@ public class Tools {
         } catch (Exception e) {
             System.out.println("复制单个文件操作出错");
             e.printStackTrace();
-
         }
+    }
 
+    public static void deleteFile(File file) {
+
+        if (file.isDirectory()) {
+            File[] listfiles = file.listFiles();
+            for (File temp : listfiles) {
+                deleteFile(temp);
+            }
+        }
+        file.delete();
     }
 }

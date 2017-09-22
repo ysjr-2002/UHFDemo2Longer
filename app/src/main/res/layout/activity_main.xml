@@ -9,10 +9,10 @@
 
 
     <LinearLayout
+        android:visibility="invisible"
         android:layout_width="match_parent"
         android:orientation="horizontal"
         android:layout_height="wrap_content">
-
 
         <Button
             android:id="@+id/buttonconnect"
@@ -53,7 +53,6 @@
             android:text="初始化"
             android:visibility="visible" />
 
-
         <Button
             android:id="@+id/buttonfile"
             android:layout_width="80dp"
@@ -69,7 +68,7 @@
         android:id="@+id/textview_epc"
         android:textSize="24sp"
         android:gravity="center"
-        android:text="欢迎使用人像辅助比对系统"
+        android:text="@string/welcome"
         android:layout_height="0dp"
         android:layout_weight="1"/>
 
@@ -79,12 +78,13 @@
         android:id="@+id/imageviewphoto"
         android:layout_height="0dp" />
 
-    <TextView
+    <TextClock
+        android:id="@+id/textClock"
+        android:format24Hour="H:mm"
         android:layout_width="match_parent"
-        android:id="@+id/textview_time"
-        android:textSize="24sp"
         android:gravity="center"
-        android:text="12:00:00"
-        android:layout_height="46dp" />
+        android:padding="8dp"
+        android:textColor="#ff6a00"
+        android:layout_height="wrap_content" />
 
 </android.widget.LinearLayout>
