@@ -429,12 +429,50 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 File file = new File(root + "//aa");
                 Tools.deleteFile(file);
                 dbHelper.clear();
+                showtoast("执行成功");
                 break;
             case R.id.menu_about:
                 AboutDialog();
                 break;
+            case R.id.menu_test:
+                showRunner("25");
+                break;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void showRunner(String key) {
+
+        Runner runner = dbHelper.getRunner(key);
+        if (runner != null) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("shit");
+//            builder.setView(R.layout.dialog_runner);
+
+            View temp = getLayoutInflater().inflate(R.layout.dialog_runner, null);
+            TextView name = (TextView) temp.findViewById(R.id.textView_name);
+            TextView code = (TextView) temp.findViewById(R.id.textView_code);
+            ImageView photo = (ImageView) temp.findViewById(R.id.imageView_photo);
+            builder.setView(temp);
+
+            name.setText(runner.getName());
+            code.setText(runner.getCode());
+
+            photo.setImageBitmap(getBitmap(runner.getPhoto()));
+
+            builder.show();
+
+        } else {
+            showtoast("查询失败");
+        }
+    }
+
+    private Bitmap getBitmap(String path) {
+
+        Bitmap bitmap = null;
+        path = Environment.getExternalStorageDirectory().getPath() + path;
+        bitmap = BitmapFactory.decodeFile(path);
+        return bitmap;
     }
 
     int requestCode = 1;
@@ -446,7 +484,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         startActivityForResult(intent, requestCode);
     }
-
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -512,7 +549,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                             Log.d(TAG, name + " " + code + " " + photo);
 
                             String newPath = "//aa//" + Integer.toString(i) + ".jpg";
-                            Tools.copyFile(source, newPath);
+                            fileCopy(source, newPath);
 
                             dialog.setProgress(i);
                             Runner runner = new Runner();
