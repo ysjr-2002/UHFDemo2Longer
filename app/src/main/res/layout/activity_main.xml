@@ -5,6 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:fitsSystemWindows="true"
+    android:background="#fff322"
     tools:context="com.uhfdemo2longer.MainActivity">
 
 
@@ -66,17 +68,12 @@
     <TextView
         android:layout_width="match_parent"
         android:id="@+id/textview_epc"
-        android:textSize="24sp"
+        android:textSize="36sp"
         android:gravity="center"
         android:text="@string/welcome"
         android:layout_height="0dp"
+        android:textColor="#ff6a00"
         android:layout_weight="1"/>
-
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_weight="1"
-        android:id="@+id/imageviewphoto"
-        android:layout_height="0dp" />
 
     <TextClock
         android:id="@+id/textClock"

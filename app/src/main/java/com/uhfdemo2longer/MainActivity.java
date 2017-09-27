@@ -11,6 +11,7 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -22,6 +23,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -78,6 +80,21 @@ public class MainActivity extends Activity implements View.OnClickListener {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        //核心代码.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+
+            this.requestWindowFeature(Window.FEATURE_NO_TITLE);
+            Window window = getWindow();
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS | WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+            window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+
+            //给状态栏设置颜色。我设置透明。
+            window.setStatusBarColor(Color.TRANSPARENT);
+            window.setNavigationBarColor(Color.TRANSPARENT);
+        }
+
         setContentView(R.layout.activity_main);
         initView();
         Util.initSoundPool(this);
@@ -92,10 +109,24 @@ public class MainActivity extends Activity implements View.OnClickListener {
         this.registerReceiver(keyReceiver, intentFilter);
     }
 
+    protected void setTranslucentStatus() {
+        // 5.0以上系统状态栏透明
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Window window = getWindow();
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.setStatusBarColor(Color.BLACK);
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        }
+    }
+
     @Override
     protected void onStart() {
         dbHelper = RunnerDBManager.getInstance(this);
-//        connect();
+        connect();
 //        scan();
         super.onStart();
     }
@@ -133,7 +164,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
         buttoninit = (Button) findViewById(R.id.buttoninit);
         buttonfile = (Button) findViewById(R.id.buttonfile);
 
-        imageview_photo = (ImageView) findViewById(R.id.imageviewphoto);
         textview_epc = (TextView) findViewById(R.id.textview_epc);
         buttonconnect.setOnClickListener(this);
         buttonscan.setOnClickListener(this);
@@ -167,7 +197,14 @@ public class MainActivity extends Activity implements View.OnClickListener {
                         showtoast("f5");
                         break;
                     case KeyEvent.KEYCODE_F4:
-                        showtoast("f4");
+//                        scan();
+                        startFlag = true;
+                        break;
+                }
+            } else {
+                switch (keyCode) {
+                    case KeyEvent.KEYCODE_F4:
+                        startFlag = false;
                         break;
                 }
             }
@@ -298,9 +335,11 @@ public class MainActivity extends Activity implements View.OnClickListener {
         if (manager == null) return;
         if (!startFlag) {
             startFlag = true;
+            Log.i(TAG, "开始扫描");
             buttonscan.setText(getString(R.string.stop_inventory));
         } else {
             startFlag = false;
+            Log.i(TAG, "停止扫描");
             buttonscan.setText(getString(R.string.inventory));
         }
     }
@@ -364,6 +403,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
         }
     }
 
+    String preepc = "";
+
     private class InventoryThread extends Thread {
         private List<String> epcList;
 
@@ -377,21 +418,30 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     epcList = manager.inventoryRealTime();
                     if (epcList != null && !epcList.isEmpty()) {
 
-                        Util.play(1, 0);
+
                         for (String epc : epcList) {
                             Log.i(TAG, epc + " " + System.currentTimeMillis());
                             Message message = handler.obtainMessage();
                             message.what = 9876;
+
+                            if (preepc.equals(epc)) {
+                                Log.e(TAG, "break->" + epc);
+                                break;
+                            }
+                            Util.play(1, 0);
+                            preepc = epc;
+                            Log.e(TAG, "shit->" + preepc);
                             Bundle bundle = new Bundle();
                             bundle.putString("code", epc);
                             message.setData(bundle);
                             handler.sendMessage(message);
+
                         }
                     }
 
                     epcList = null;
                     try {
-                        Thread.sleep(1000);
+                        Thread.sleep(20);
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
@@ -406,7 +456,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 case 9876:
                     Bundle bundle = msg.getData();
                     String epc = bundle.getString("code");
-                    textview_epc.setText(epc);
+//                    textview_epc.setText(epc);
+                    showRunner("25");
                     break;
             }
         }
@@ -446,7 +497,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
         Runner runner = dbHelper.getRunner(key);
         if (runner != null) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("shit");
+            //builder.setTitle("shit");
 //            builder.setView(R.layout.dialog_runner);
 
             View temp = getLayoutInflater().inflate(R.layout.dialog_runner, null);
@@ -455,8 +506,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
             ImageView photo = (ImageView) temp.findViewById(R.id.imageView_photo);
             builder.setView(temp);
 
-            name.setText(runner.getName());
-            code.setText(runner.getCode());
+            name.setText("姓名:" + runner.getName());
+            code.setText("编号:" + runner.getCode());
 
             photo.setImageBitmap(getBitmap(runner.getPhoto()));
 
@@ -480,7 +531,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private void doImport() {
 
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("file/*");
+        intent.setType("*/*");
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         startActivityForResult(intent, requestCode);
     }
@@ -493,10 +544,21 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 Uri uri = data.getData();
                 String scheme = uri.getScheme();
                 String path = GetPathFromUri4kitkat.getPath(this, uri);
-
-                File file = new File(path);
-                if (file.exists()) {
-                    imporExcel(path);
+                if (path == null) {
+                    path = GetPathFromUri4kitkat.getDataColumn(this, uri, null, null);
+                    if (path == null) {
+                        showtoast("获取文件路径错误");
+                    } else {
+                        File file = new File(path);
+                        if (file.exists()) {
+                            imporExcel(path);
+                        }
+                    }
+                } else {
+                    File file = new File(path);
+                    if (file.exists()) {
+                        imporExcel(path);
+                    }
                 }
             }
         }
@@ -559,7 +621,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                             runner.setConfirm(getCurrentDateTime());
                             dbHelper.insert(runner);
 
-                            Thread.sleep(100);
+                            //Thread.sleep(100);
                         }
                     } catch (Exception ex) {
                         ex.printStackTrace();
