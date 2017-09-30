@@ -68,6 +68,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private RunnerDBManager dbHelper;
     private boolean connectFlag = false;
     private boolean runFlag = true;
+    private boolean startFlag = false;
     private static final String TAG = "MainActivity";
 
     @Override
@@ -120,7 +121,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
     protected void onStart() {
         dbHelper = RunnerDBManager.getInstance(this);
         connect();
-        scan();
         super.onStart();
     }
 
@@ -170,7 +170,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
                         break;
                     case KeyEvent.KEYCODE_F3:
                         showtoast("f3");
-                        scan();
                         break;
                     case KeyEvent.KEYCODE_F5:
                         showtoast("f5");
@@ -178,7 +177,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     case KeyEvent.KEYCODE_F4:
                         //ÊÖ³Ö°´¼ü
                         startFlag = true;
-                        scan();
+                        Log.i(TAG, "¿ªÊ¼É¨Ãè");
                         break;
                 }
             } else {
@@ -186,6 +185,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     case KeyEvent.KEYCODE_F4:
                         startFlag = false;
                         preepc = "";
+                        Log.i(TAG, "Í£Ö¹É¨Ãè");
                         break;
                 }
             }
@@ -225,19 +225,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
     public void onClick(View view) {
 
         switch (view.getId()) {
-        }
-    }
-
-    boolean startFlag = false;
-
-    private void scan() {
-        if (manager == null) return;
-        if (!startFlag) {
-            startFlag = true;
-            Log.i(TAG, "¿ªÊ¼É¨Ãè");
-        } else {
-            startFlag = false;
-            Log.i(TAG, "Í£Ö¹É¨Ãè");
         }
     }
 
