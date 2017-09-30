@@ -6,64 +6,8 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:fitsSystemWindows="true"
-    android:background="#fff322"
+    android:background="#76b7ee"
     tools:context="com.uhfdemo2longer.MainActivity">
-
-
-    <LinearLayout
-        android:visibility="invisible"
-        android:layout_width="match_parent"
-        android:orientation="horizontal"
-        android:layout_height="wrap_content">
-
-        <Button
-            android:id="@+id/buttonconnect"
-            android:layout_width="100dp"
-            android:layout_height="wrap_content"
-            android:text="链接"
-            android:visibility="gone" />
-
-        <Button
-            android:id="@+id/buttonscan"
-            android:layout_width="80dp"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="10dp"
-            android:text="扫描"
-            android:visibility="visible" />
-
-        <Button
-        android:id="@+id/buttonsearch"
-        android:layout_width="80dp"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
-        android:text="查询"
-        android:visibility="visible" />
-
-        <Button
-        android:id="@+id/buttonclear"
-        android:layout_width="80dp"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
-        android:text="清空"
-        android:visibility="visible" />
-
-        <Button
-            android:id="@+id/buttoninit"
-            android:layout_width="80dp"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="10dp"
-            android:text="初始化"
-            android:visibility="visible" />
-
-        <Button
-            android:id="@+id/buttonfile"
-            android:layout_width="80dp"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="10dp"
-            android:text="文件"
-            android:visibility="visible" />
-    </LinearLayout>
-
 
     <TextView
         android:layout_width="match_parent"

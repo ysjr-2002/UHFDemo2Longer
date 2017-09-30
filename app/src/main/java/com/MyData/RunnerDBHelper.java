@@ -65,6 +65,6 @@ public class RunnerDBHelper extends SQLiteOpenHelper {
 
     public void createTableUser(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE IF NOT EXISTS " + TABLE_EXTRA_RUNNER_INFO + " (ID INTEGER PRIMARY KEY AUTOINCREMENT"
-                + ",name TEXT, code TEXT ,photo TEXT,confirm datetime)");
+                + ",name TEXT, code TEXT, gender TEXT, groupname TEXT, photo TEXT,confirm datetime)");
     }
 }

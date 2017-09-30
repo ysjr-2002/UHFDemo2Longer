@@ -10,6 +10,8 @@ public class Runner {
 
     private String name;
     private String code;
+    private String gender;
+    private String group;
     private String photo;
     private String confirm;
 
@@ -27,6 +29,22 @@ public class Runner {
 
     public void setCode(String val) {
         this.code = val;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    public String getGroup() {
+        return group;
+    }
+
+    public void setGroup(String group) {
+        this.group = group;
     }
 
     public String getPhoto() {

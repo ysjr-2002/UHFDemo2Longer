@@ -40,6 +40,8 @@ public class RunnerDBManager {
             ContentValues values = new ContentValues();
             values.put("name", runner.getName());
             values.put("code", runner.getCode());
+            values.put("gender", runner.getGender());
+            values.put("groupname", runner.getGroup());
             values.put("photo", runner.getPhoto());
             values.put("confirm", runner.getConfirm());
             db.insert(RunnerDBHelper.TABLE_EXTRA_RUNNER_INFO, null, values);
@@ -92,11 +94,15 @@ public class RunnerDBManager {
 
                 String name = cursor.getString(cursor.getColumnIndex("name"));
                 String code = cursor.getString(cursor.getColumnIndex("code"));
+                String gender = cursor.getString(cursor.getColumnIndex("gender"));
+                String group = cursor.getString(cursor.getColumnIndex("groupname"));
                 String photo = cursor.getString(cursor.getColumnIndex("photo"));
                 String confirm = cursor.getString(cursor.getColumnIndex("confirm"));
                 runner = new Runner();
                 runner.setName(name);
                 runner.setCode(code);
+                runner.setGender(gender);
+                runner.setGroup(group);
                 runner.setPhoto(photo);
                 runner.setConfirm(confirm);
             }

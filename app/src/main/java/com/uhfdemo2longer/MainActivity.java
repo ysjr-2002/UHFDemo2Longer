@@ -59,13 +59,6 @@ import jxl.Workbook;
 
 public class MainActivity extends Activity implements View.OnClickListener {
 
-    private Button buttonconnect;
-    private Button buttonscan;
-    private Button buttonsearch;
-    private Button buttonclear;
-    private Button buttoninit;
-    private Button buttonfile;
-    private ImageView imageview_photo;
     private TextView textview_epc;
     private Toast toast;
     private String root = "";
@@ -127,7 +120,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
     protected void onStart() {
         dbHelper = RunnerDBManager.getInstance(this);
         connect();
-//        scan();
+        scan();
         super.onStart();
     }
 
@@ -140,7 +133,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     @Override
     protected void onRestart() {
-        //startFlag = true;
+        startFlag = true;
         super.onRestart();
     }
 
@@ -157,20 +150,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
     }
 
     private void initView() {
-        buttonconnect = (Button) findViewById(R.id.buttonconnect);
-        buttonscan = (Button) findViewById(R.id.buttonscan);
-        buttonsearch = (Button) findViewById(R.id.buttonsearch);
-        buttonclear = (Button) findViewById(R.id.buttonclear);
-        buttoninit = (Button) findViewById(R.id.buttoninit);
-        buttonfile = (Button) findViewById(R.id.buttonfile);
-
         textview_epc = (TextView) findViewById(R.id.textview_epc);
-        buttonconnect.setOnClickListener(this);
-        buttonscan.setOnClickListener(this);
-        buttonsearch.setOnClickListener(this);
-        buttonclear.setOnClickListener(this);
-        buttoninit.setOnClickListener(this);
-        buttonfile.setOnClickListener(this);
     }
 
     private class KeyReceiver extends BroadcastReceiver {
@@ -189,7 +169,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
                         showtoast("f2");
                         break;
                     case KeyEvent.KEYCODE_F3:
-                        //手持按键
                         showtoast("f3");
                         scan();
                         break;
@@ -197,14 +176,16 @@ public class MainActivity extends Activity implements View.OnClickListener {
                         showtoast("f5");
                         break;
                     case KeyEvent.KEYCODE_F4:
-//                        scan();
+                        //手持按键
                         startFlag = true;
+                        scan();
                         break;
                 }
             } else {
                 switch (keyCode) {
                     case KeyEvent.KEYCODE_F4:
                         startFlag = false;
+                        preepc = "";
                         break;
                 }
             }
@@ -244,88 +225,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
     public void onClick(View view) {
 
         switch (view.getId()) {
-            case R.id.buttonconnect:
-                //连接成功
-                connect();
-                break;
-            case R.id.buttonscan:
-                //开始扫描
-                scan();
-                break;
-            case R.id.buttonsearch:
-                String ok = "1E573734BE50052BE7981E8D";
-//                MyRunner runner = dbHelper.search("1");
-//                if (runner != null) {
-//                    String path = runner.getPhoto();
-//                    path = root + path;
-//                    File file = new File(path);
-//                    if (file.exists()) {
-//                        Bitmap bitmap = getLoacalBitmap(path);
-//                        imageview_photo.setImageBitmap(bitmap);
-//                    } else {
-//                        showtoast("路径不存在");
-//                    }
-//                }
-                break;
-            case R.id.buttonclear:
-//                int count = dbHelper.count();
-//                showtoast(Integer.toString(count));
-//                dbHelper.clear();
-//                count = dbHelper.count();
-//                showtoast(Integer.toString(count));
-//
-//                File del = new File(root + "/test");
-//                deleteDir(del);
-//                if (del.delete()) {
-//                    showtoast("删除成功");
-//                } else {
-//                    showtoast("删除失败");
-//                }
-                break;
-            case R.id.buttoninit:
-//                dbHelper.insert();
-
-                String source = root + "/temp/ysj.jpg";
-//                String density = root + "/test/123.jpg";
-//                File sourceFile = new File(source);
-//                File densityFile = new File(density);
-//                Tools.copyFileUsingStream(sourceFile, densityFile);
-//                Tools.copyFile(source, density);
-//
-//                if (densityFile.exists()) {
-//                    showtoast("复制成功");
-//                } else {
-//                    showtoast("复制失败");
-//                }
-
-                for (int i = 0; i <= 10; i++) {
-//                    String densityFile = root + "/test/" + i + ".jpg";
-//                    MyRunner runner1 = new MyRunner();
-//                    runner1.setName(Integer.toString(i));
-//                    runner1.setCode(Integer.toString(i));
-//                    runner1.setPhoto("/test/" + i + ".jpg ");
-//                    dbHelper.insert(runner1);
-//                    Tools.copyFile(source, densityFile);
-//                    Log.i("insert", runner1.getPhoto());
-                }
-                showtoast("初始化结束");
-                break;
-
-            case R.id.buttonfile:
-                File test = new File(root + "/test");
-                if (test.isDirectory()) {
-                    File[] array = test.listFiles();
-                    showtoast(Integer.toString(array.length));
-                    for (File temp : array
-                            ) {
-                        Log.e("list file", temp.getPath());
-//                        System.out.print(temp.getPath());
-                    }
-                } else {
-                    showtoast("不是目录");
-                }
-
-                break;
         }
     }
 
@@ -336,11 +235,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
         if (!startFlag) {
             startFlag = true;
             Log.i(TAG, "开始扫描");
-            buttonscan.setText(getString(R.string.stop_inventory));
         } else {
             startFlag = false;
             Log.i(TAG, "停止扫描");
-            buttonscan.setText(getString(R.string.inventory));
         }
     }
 
@@ -371,7 +268,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
                                 String a = getString(R.string._freBand);
                                 String b = getResources().getStringArray(array.freBandArray)[reg];
 //                                showtoast(a + b);
-
                             }
                         });
                     }
@@ -391,7 +287,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
             connectFlag = true;
         }
         Util.play(1, 0);
-        setButtonClickable(buttonconnect, false);
     }
 
     private void setButtonClickable(Button button, boolean flag) {
@@ -414,28 +309,22 @@ public class MainActivity extends Activity implements View.OnClickListener {
             super.run();
             while (runFlag) {
 
-                if (startFlag) {
+                if (startFlag && manager != null) {
                     epcList = manager.inventoryRealTime();
                     if (epcList != null && !epcList.isEmpty()) {
-
-
                         for (String epc : epcList) {
-                            Log.i(TAG, epc + " " + System.currentTimeMillis());
-                            Message message = handler.obtainMessage();
-                            message.what = 9876;
-
                             if (preepc.equals(epc)) {
-                                Log.e(TAG, "break->" + epc);
+                                Log.e(TAG, "重复号码->" + epc);
                                 break;
                             }
+                            Message message = handler.obtainMessage();
+                            message.what = 9876;
                             Util.play(1, 0);
                             preepc = epc;
-                            Log.e(TAG, "shit->" + preepc);
                             Bundle bundle = new Bundle();
                             bundle.putString("code", epc);
                             message.setData(bundle);
                             handler.sendMessage(message);
-
                         }
                     }
 
@@ -456,7 +345,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 case 9876:
                     Bundle bundle = msg.getData();
                     String epc = bundle.getString("code");
-//                    textview_epc.setText(epc);
                     showRunner("25");
                     break;
             }
@@ -503,11 +391,15 @@ public class MainActivity extends Activity implements View.OnClickListener {
             View temp = getLayoutInflater().inflate(R.layout.dialog_runner, null);
             TextView name = (TextView) temp.findViewById(R.id.textView_name);
             TextView code = (TextView) temp.findViewById(R.id.textView_code);
+            TextView gender = (TextView) temp.findViewById(R.id.textView_gender);
+            TextView group = (TextView) temp.findViewById(R.id.textView_group);
             ImageView photo = (ImageView) temp.findViewById(R.id.imageView_photo);
             builder.setView(temp);
 
-            name.setText("姓名:" + runner.getName());
-            code.setText("编号:" + runner.getCode());
+            name.setText(runner.getName());
+            code.setText(runner.getCode());
+            gender.setText(runner.getGender());
+            group.setText(runner.getGroup());
 
             photo.setImageBitmap(getBitmap(runner.getPhoto()));
 
@@ -607,7 +499,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
                             String name = ReadData(sheet, i, 0);
                             String code = ReadData(sheet, i, 1);
-                            String photo = ReadData(sheet, i, 2);
+                            String gender = ReadData(sheet, i, 2);
+                            String group = ReadData(sheet, i, 3);
+                            String photo = ReadData(sheet, i, 4);
                             Log.d(TAG, name + " " + code + " " + photo);
 
                             String newPath = "//aa//" + Integer.toString(i) + ".jpg";
@@ -617,6 +511,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
                             Runner runner = new Runner();
                             runner.setName(name);
                             runner.setCode(code);
+                            runner.setGender(gender);
+                            runner.setGroup(group);
                             runner.setPhoto(newPath);
                             runner.setConfirm(getCurrentDateTime());
                             dbHelper.insert(runner);
